@@ -1,5 +1,6 @@
 import os
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
+from sqlalchemy import desc
 from database import SessionLocal, Base, engine
 from models import WebhookTask, TaskStatus
 import tasks
@@ -8,6 +9,30 @@ app = Flask(__name__)
 
 # Initialize database
 Base.metadata.create_all(bind=engine)
+
+@app.route("/")
+def index():
+    return send_from_directory('static', 'index.html')
+
+@app.route("/<path:path>")
+def serve_static(path):
+    return send_from_directory('static', path)
+
+@app.route("/api/tasks", methods=["GET"])
+def list_tasks():
+    db = SessionLocal()
+    try:
+        tasks = db.query(WebhookTask).order_by(desc(WebhookTask.created_at)).limit(50).all()
+        return jsonify([{
+            "task_id": task.id,
+            "status": task.status.value,
+            "retry_count": task.retry_count,
+            "target_url": task.target_url,
+            "created_at": task.created_at.isoformat(),
+            "updated_at": task.updated_at.isoformat()
+        } for task in tasks]), 200
+    finally:
+        db.close()
 
 @app.route("/send-webhook", methods=["POST"])
 def send_webhook():

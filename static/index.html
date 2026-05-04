@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webhook Control Plane</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="background-glow"></div>
+    
+    <div class="container">
+        <header>
+            <h1>Webhook Control Plane</h1>
+            <p>Enterprise-grade reliable delivery system</p>
+        </header>
+
+        <main class="dashboard-grid">
+            <!-- Left Side: Form -->
+            <section class="glass-panel">
+                <h2>Send Webhook</h2>
+                <form id="webhook-form">
+                    <div class="input-group">
+                        <label for="target_url">Target URL</label>
+                        <input type="url" id="target_url" placeholder="https://api.example.com/webhook" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="payload">JSON Payload</label>
+                        <textarea id="payload" rows="6" required>{
+    "event": "user.signup",
+    "data": {
+        "user_id": 9921,
+        "plan": "premium"
+    }
+}</textarea>
+                    </div>
+                    <button type="submit" id="submit-btn">Enqueue Task</button>
+                    <div id="form-status" class="status-msg hidden"></div>
+                </form>
+            </section>
+
+            <!-- Right Side: Live Tasks -->
+            <section class="glass-panel">
+                <div class="section-header">
+                    <h2>Live Task Queue</h2>
+                    <span class="live-indicator"><span class="dot"></span>Live</span>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Task ID</th>
+                                <th>Status</th>
+                                <th>Retries</th>
+                                <th>Target</th>
+                                <th>Time</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tasks-body">
+                            <!-- Tasks injected via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="/app.js"></script>
+</body>
+</html>
