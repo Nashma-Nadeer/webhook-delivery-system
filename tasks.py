@@ -7,13 +7,38 @@ from models import WebhookTask, TaskStatus
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 
 # Initialize Celery
-celery_app = Celery("webhook_tasks", broker=REDIS_URL)
+# We use a filesystem broker fallback for local development if Redis is unavailable
+celery_app = Celery("webhook_worker", broker=REDIS_URL)
+
+try:
+    # Test Redis connection (optional, but good for fallback logic)
+    import redis
+    r = redis.from_url(REDIS_URL)
+    r.ping()
+except Exception:
+    # Fallback to filesystem broker for zero-infrastructure demo
+    print("Redis not found. Falling back to filesystem broker for local demo...")
+    os.makedirs("./broker/out", exist_ok=True)
+    os.makedirs("./broker/processed", exist_ok=True)
+    celery_app.conf.update(
+        broker_url='filesystem://',
+        broker_transport_options={
+            'data_folder_in': './broker/out',
+            'data_folder_out': './broker/out',
+            'data_folder_processed': './broker/processed'
+        }
+    )
+
 celery_app.conf.update(
+    result_backend="rpc://",
     task_serializer="json",
     accept_content=["json"],
     result_serializer="json",
     timezone="UTC",
     enable_utc=True,
+    # Exponential backoff settings
+    task_acks_late=True,
+    worker_prefetch_multiplier=1,
 )
 
 @celery_app.task(bind=True, max_retries=5)
