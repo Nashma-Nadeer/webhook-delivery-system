@@ -34,6 +34,26 @@ def list_tasks():
     finally:
         db.close()
 
+@app.route("/api/stats", methods=["GET"])
+def get_stats():
+    db = SessionLocal()
+    try:
+        total = db.query(WebhookTask).count()
+        success = db.query(WebhookTask).filter(WebhookTask.status == TaskStatus.SUCCESS).count()
+        failed = db.query(WebhookTask).filter(WebhookTask.status == TaskStatus.FAILED).count()
+        retrying = db.query(WebhookTask).filter(WebhookTask.status == TaskStatus.RETRYING).count()
+        pending = db.query(WebhookTask).filter(WebhookTask.status == TaskStatus.PENDING).count()
+        
+        return jsonify({
+            "total": total,
+            "success": success,
+            "failed": failed,
+            "retrying": retrying,
+            "pending": pending
+        }), 200
+    finally:
+        db.close()
+
 @app.route("/send-webhook", methods=["POST"])
 def send_webhook():
     data = request.json

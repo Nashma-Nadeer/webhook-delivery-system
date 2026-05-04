@@ -15,6 +15,20 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // Fetch and render stats
+    async function fetchStats() {
+        try {
+            const res = await fetch("/api/stats");
+            const stats = await res.json();
+            document.getElementById("stat-total").textContent = stats.total;
+            document.getElementById("stat-success").textContent = stats.success;
+            document.getElementById("stat-failed").textContent = stats.failed;
+            document.getElementById("stat-retrying").textContent = stats.retrying;
+        } catch (err) {
+            console.error("Failed to fetch stats", err);
+        }
+    }
+
     function renderTasks(tasks) {
         tbody.innerHTML = "";
         tasks.forEach(task => {
@@ -95,5 +109,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Initial fetch and start polling every 2 seconds
     fetchTasks();
-    setInterval(fetchTasks, 2000);
+    fetchStats();
+    setInterval(() => {
+        fetchTasks();
+        fetchStats();
+    }, 2000);
 });
